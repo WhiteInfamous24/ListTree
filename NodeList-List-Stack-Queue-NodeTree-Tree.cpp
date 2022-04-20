@@ -372,6 +372,7 @@ template<class T> class NodeTree {
 
 // ---------------------- Class Tree
 
+/*
 template<class T> class Tree {
     private:
         int max_childrens; //cantidad de hijos que puede tener un nodo
@@ -515,6 +516,7 @@ template<class T> List<NodeTree<T> *> *Tree<T>::toList(void) {
     }
     return output;
 }
+*/
 
 // ---------------------- Class MAIN
 
