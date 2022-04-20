@@ -77,44 +77,55 @@ template<class T> class List {
             head = n;
             tail = n;
         };
-        void add(T d); //agrega un nodo en la cola
+        void add(T d); //agrega un nodo al final
+        void addHead(T d); //agrega un nodo al inicio
         void add(T d, int n); //agrega un nodo en la posicion n
-        void dlteHead(bool b); //borra el nodo cabeza donde b indica si se hara un borrado fisico del nodo
-        void dlteTail(bool b); //borra el nodo cola donde b indica si se hara un borrado fisico del nodo
-        void dlte(int n, bool b); //borra el nodo en la posicion n donde b indica si sera un borrado fisico del nodo
+        void dlte(void); //borra el nodo al final
+        void dlteHead(void); //borra el nodo al inicio
+        void dlte(int n); //borra el nodo en la posicion n
         NodeList<T> *getHead(void); //retorna un puntero al nodo cabeza
         NodeList<T> *getTail(void); //retorna un puntero al nodo cola
+        List *rest(void); //retorna una nueva lista igual sin el nodo cabeza
         NodeList<T> *take(int n); //retorna un puntero al nodo en la posicion n
-        List *rest(void); //retorna la lista sin el nodo cola
-        int size(void); //retorna un entero que indica la cantidad de nodos de la lista
         void swap(int a, int b); //efectua un swap entre la informacion del nodo en la posicion a con el nodo en la posicion b
         int position(T d); //retorna un entero indicando la posicion donde se encuentra el dato d
         void show(void); //muestra todos los elementos de la lista
+        int size(void); //retorna un entero que indica la cantidad de nodos de la lista
         bool isEmpty(void); //retorna true si la lista esta vacia
 };
 
 template<class T> void List<T>::add(T d) {
-    if(head != NULL) {
+    if(!this->isEmpty()) {
         NodeList<T> *nw = new NodeList<T>(d, NULL, tail);
         tail->setNext(nw);
         tail = nw;
     }
     else {
-        NodeList<T> *nw = new NodeList<T>(d, NULL, NULL);
+        NodeList<T> *nw = new NodeList<T>(d);
+        head = nw;
+        tail = nw;
+    }
+}
+
+template<class T> void List<T>::addHead(T d) {
+    if(!this->isEmpty()) {
+        NodeList<T> *nw = new NodeList<T>(d, head, NULL);
+        head->setPrevious(nw);
+        head = nw;
+    }
+    else {
+        NodeList<T> *nw = new NodeList<T>(d);
         head = nw;
         tail = nw;
     }
 }
 
 template<class T> void List<T>::add(T d, int n) {
-    if(n <= this->size() && n > 0) {
-        if(n == this->size())
+    if(n > 0 && n <= this->size()) {
+        if(n == 0)
+            this->addHead(d);
+        else if(n == this->size())
             this->add(d);
-        else if(n == 0) {
-            NodeList<T> *nw = new NodeList<T>(d, head, NULL);
-            head->setPrevious(nw);
-            head = nw;
-        }
         else {
             NodeList<T> *tmp = this->take(n);
             NodeList<T> *nw = new NodeList<T>(d, tmp, tmp->getPrevious());
@@ -124,56 +135,51 @@ template<class T> void List<T>::add(T d, int n) {
     }
 }
 
-template <class T> void List<T>::dlteHead(bool b) {
-    if(!this->isEmpty()) {
-        if(head != tail) {
-            NodeList<T> *tmp = head;
-            head = head->getNext();
-            head->setPrevious();
-            if(b)
-                delete tmp;
-        }
-        else {
-            NodeList<T> *tmp = head;
-            head = NULL;
-            tail = NULL;
-            if(b)
-                delete tmp;
-        }
-    }
-}
-
-template<class T> void List<T>::dlteTail(bool b) {
+template<class T> void List<T>::dlte(void) {
     if(!this->isEmpty()) {
         if(head != tail) {
             NodeList<T> *tmp = tail;
             tail = tail->getPrevious();
             tail->setNext();
-            if(b)
-                delete tmp;
+            delete tmp;
         }
         else {
-            NodeList<T> *tmp = tail;
+            NodeList<T> *tmp = head;
             head = NULL;
             tail = NULL;
-            if(b)
-                delete tmp;
+            delete tmp;
         }
     }
 }
 
-template<class T> void List<T>::dlte(int n, bool b) {
-    if(!this->isEmpty() && n < this->size() && n >= 0) {
+template <class T> void List<T>::dlteHead(void) {
+    if(!this->isEmpty()) {
+        if(head != tail) {
+            NodeList<T> *tmp = head;
+            head = head->getNext();
+            head->setPrevious();
+            delete tmp;
+        }
+        else {
+            NodeList<T> *tmp = head;
+            head = NULL;
+            tail = NULL;
+            delete tmp;
+        }
+    }
+}
+
+template<class T> void List<T>::dlte(int n) {
+    if(!this->isEmpty() && n >= 0 && n < this->size()) {
         if(n == 0)
-            this->dlteHead(b);
+            this->dlteHead();
         else if(n == this->size()-1)
-            this->dlteTail(b);
+            this->dlte();
         else {
             NodeList<T> *tmp = this->take(n);
             tmp->getNext()->setPrevious(tmp->getPrevious());
             tmp->getPrevious()->setNext(tmp->getNext());
-            if(b)
-                delete tmp;
+            delete tmp;
         }
     }
 }
@@ -186,27 +192,19 @@ template<class T> NodeList<T> *List<T>::getTail(void) {
     return tail;
 }
 
+template<class T> List<T> *List<T>::rest(void) {
+    return new List<T>(head->getNext());
+}
+
 template<class T> NodeList<T> *List<T>::take(int n) {
-    if(!this->isEmpty() && n < this->size() && n >= 0) {
+    if(!this->isEmpty() && n >= 0 && n < this->size()) {
         if(n == 0)
             return head;
-        if(n == this->size()-1)
+        if(n == this->size())
             return tail;
-        return this->rest()->take(n);
+        return this->rest()->take(n-1);
     }
     return NULL;
-}
-
-template<class T> List<T> *List<T>::rest(void) {
-    List* tmp = new List(tail->getPrevious());
-    return tmp;
-}
-
-template<class T> int List<T>::size(void) {
-    if(this->isEmpty())
-        return 0;
-    else
-        return 1+this->rest()->size();
 }
 
 template<class T> void List<T>::swap(int a, int b) {
@@ -216,31 +214,16 @@ template<class T> void List<T>::swap(int a, int b) {
 }
 
 template<class T> int List<T>::position(T d) {
-    if(!this->isEmpty()) {
-        int counter = 0;
-        NodeList<T> *tmp = head;
-        while(tmp->getData() != d) {
-            tmp = tmp->getNext();
-            counter++;
-        }
-        return counter;
-    }
+    if(head->getData() == d)
+        return 0;
+    else
+        return 1+this->rest()->position(d);
 }
 
 template<class T> void List<T>::show(void) {
     if(!this->isEmpty()) {
         NodeList<T> *tmp = head;
-        cout<<endl<<tmp->getData();
-        if(tmp->getPrevious() != NULL)
-            cout<<" - previous: "<<tmp->getPrevious()->getData();
-        else
-            cout<<" - previous: NULL";
-        if(tmp->getNext() != NULL)
-            cout<<" - next: "<<tmp->getNext()->getData();
-        else
-            cout<<" - next: NULL";
-        while(tmp->hasNext()) {
-            tmp = tmp->getNext();
+        do {
             cout<<endl<<tmp->getData();
             if(tmp->getPrevious() != NULL)
                 cout<<" - previous: "<<tmp->getPrevious()->getData();
@@ -250,7 +233,8 @@ template<class T> void List<T>::show(void) {
                 cout<<" - next: "<<tmp->getNext()->getData();
             else
                 cout<<" - next: NULL";
-        }
+            tmp = tmp->getNext();
+        } while(tmp != NULL);
         cout<<"\nhead: "<<head->getData();
         cout<<"\ntail: "<<tail->getData()<<endl;
     }
@@ -267,6 +251,13 @@ template<class T> void List<T>::show(void) {
     }
 }
 
+template<class T> int List<T>::size(void) {
+    if(this->isEmpty())
+        return 0;
+    else
+        return 1+this->rest()->size();
+}
+
 template<class T> bool List<T>::isEmpty(void) {
     return head == NULL;
 }
@@ -281,8 +272,8 @@ template<class T> class Stack:public List<T> {
         void stack(T d) { //apila un elemento en la pila
             this->add(d);
         };
-        void unstack(bool b) { //desapila un elemento de la pila donde b indica si se hara un borrado fisico del nodo
-            this->dlteTail(b);
+        void unstack(void) { //desapila un elemento de la pila
+            this->dlte();
         };
         NodeList<T> *stackTake(void) { //retorna un puntero al nodo proximo a salir
             return this->getTail();
@@ -308,8 +299,8 @@ template<class T> class Queue:public List<T> {
         void queue(T d) { //encola un elemento en la cola
             this->add(d);
         };
-        void unqueue(bool b) { //desencola un elemento de la cola donde b indica si se hara un borrado fisico del nodo
-            this->dlteHead(b);
+        void unqueue(void) { //desencola un elemento de la cola
+            this->dlteHead();
         };
         NodeList<T> *queueTake(void) { //retorna un puntero al nodo proximo a salir
             return this->getHead();
@@ -329,9 +320,9 @@ template<class T> class Queue:public List<T> {
 
 template<class T> class NodeTree {
     private:
-        T data; //dato del nodo
-        NodeTree<T> *father; //puntero al nodo padre
-        List<NodeTree<T> *> *childrens; //lista para almacenar punteros a nodos hijos
+        T data;
+        NodeTree<T> *father;
+        List<NodeTree<T> *> *childrens;
     public:
         NodeTree(void) {
             father = NULL;
@@ -347,26 +338,35 @@ template<class T> class NodeTree {
             father = f;
             childrens = new List<NodeTree<T> *>();
         };
-        void setData(T d) { //setea un dato d al nodo
+        void setData(T d) {
             data = d;
         };
-        void setFather(NodeTree<T> *f) { //setea un nodo como padre del nodo
+        void setFather(void) {
+            father = NULL;
+        };
+        void setFather(NodeTree<T> *f) {
             father = f;
         };
-        T getData(void) { //retorna el valor del dato del nodo
+        T getData(void) {
             return data;
         };
-        NodeTree<T> *getFather(void) { //retorna el puntero al padre del nodo
+        NodeTree<T> *getFather(void) {
             return father;
         };
-        List<NodeTree<T> *> *getChildrens(void) { //retorna el puntero a la lista de nodos hijos
+        List<NodeTree<T> *> *getChildrens(void) {
             return childrens;
         };
-        int level(void) { //retorna un entero que indica el nivel en el que se encuentra el nodo
+        int level(void) {
             if(father == NULL)
                 return 0;
             else
                 return 1+this->getFather()->level();
+        };
+        bool hasFather(void) {
+            return father != NULL;
+        };
+        bool hasChildrens(void) {
+            return !childrens->isEmpty();
         };
 };
 
@@ -374,101 +374,70 @@ template<class T> class NodeTree {
 
 template<class T> class Tree {
     private:
-        int n_childrens; //cantidad de hijos que puede tener un nodo
-        int n_childrens_counter; //contador para controlar el llenado de nodos hijos
-        NodeList<NodeTree<T> *> *father_mark; //puntero al nodo que sera padre del proximo nodo
+        int max_childrens; //cantidad de hijos que puede tener un nodo
         NodeTree<T> *root; //puntero al nodo raiz
-        List<NodeTree<T> *> *nodes; //lista de punteros a todos los nodos del arbol
     public:
         Tree(void) {
-            n_childrens = 2; //valor de hijos por default (arbol binario)
-            n_childrens_counter = 0;
+            max_childrens = 0;
             root = NULL;
-            father_mark = NULL;
-            nodes = new List<NodeTree<T> *>();
         };
         Tree(int n) {
-            n_childrens = n;
-            n_childrens_counter = 0;
+            max_childrens = n;
             root = NULL;
-            father_mark = NULL;
-            nodes = new List<NodeTree<T> *>();
         };
         Tree(NodeTree<T> *r, int n) {
-            n_childrens = n;
-            n_childrens_counter = 0;
+            max_childrens = n;
             root = r;
-            father_mark = r;
-            nodes = new List<NodeTree<T> *>(r);
         };
-        void addBalanced(T d); //añade un dato d en un nuevo nodo llenando por nivel
-        void dlteBalanced(bool b); //elimina el ultimo nodo donde b indica si se hara un borrado fisico del nodo
-        NodeTree<T> *take(int n); //retorna un puntero al nodo en la posicion n
+        void add(T d, NodeTree<T> *f);
+        void addBalanced(T d); //añade un nuevo nodo llenando por nivel
+        void dlte(int n);
+        void dlteBalanced(void); //elimina el ultimo nodo quitando por nivel
         NodeTree<T> *getRoot(void); //retorna un puntero a la raiz
+        NodeTree<T> *take(int n); //retorna un puntero al nodo en la posicion n
         int size(void); //retorna la cantidad de nodos del arbol
         void swapChildrenFather(NodeTree<T> *n); //efectua un swap entre la informacion del nodo n y su nodo padre
-        void show(void); //muestra todos los elementos del arbol forma de lista
-        List<NodeTree<T> *> *toList(bool b); //retorna todos los elementos del arbol en forma de lista donde b indica si se hara un borrado fisico del nodo
-        Queue<NodeTree<T> *> *toQueue(bool b); //retorna todos los elementos del arbol en forma de cola donde b indica si se hara un borrado fisico del nodo
-        Stack<NodeTree<T> *> *toStack(bool b); //retorna todos los elementos del arbol en forma de pila donde b indica si se hara un borrado fisico del nodo
+        void show(void); //muestra todos los elementos del arbol en forma de lista
+        List<NodeTree<T> *> *toList(void); //retorna todos los elementos del arbol en forma de lista
 };
 
-template<class T> void Tree<T>::addBalanced(T d) {
-    if(root != NULL) {
-        if(n_childrens_counter == n_childrens)
-            father_mark = father_mark->getNext();
-        NodeTree<T> *nw = new NodeTree<T>(d, father_mark->getData());
-        father_mark->getData()->getChildrens()->add(nw);
-        nodes->add(nw);
-        if(n_childrens_counter < n_childrens)
-            n_childrens_counter++;
-        else
-            n_childrens_counter = 1;
-    }
+template<class T> void Tree<T>::add(T d, NodeTree<T> *f) {
+    if(f != NULL)
+        NodeTree<T> *nw = new NodeTree<T>(d, f);
     else {
         NodeTree<T> *nw = new NodeTree<T>(d);
         root = nw;
-        nodes->add(nw);
-        father_mark = nodes->getHead();
     }
 }
 
-template<class T> void Tree<T>::dlteBalanced(bool b) {
+template<class T> void Tree<T>::addBalanced(T d) {
     if(root != NULL) {
-        NodeTree<T> *tmp = nodes->getTail()->getData();
-        if(tmp != root) {
-            tmp->getFather()->getChildrens()->dlteTail(true);
-            nodes->dlteTail(true);
-            if(n_childrens_counter > 1)
-                n_childrens_counter--;
-            else if(nodes->getTail()->getData() != root)
-                n_childrens_counter = n_childrens;
-            else
-                n_childrens_counter = 0;
-            if(n_childrens_counter == n_childrens)
-                father_mark = father_mark->getPrevious();
-        }
-        else {
-            n_childrens_counter = 0;
-            root = NULL;
-            father_mark = NULL;
-            nodes->dlteTail(true);
-        }
-        if(b)
-            delete tmp;
+        
     }
+    else
+        this->add(d, NULL);
 }
 
-template<class T> NodeTree<T> *Tree<T>::take(int n) {
-    return nodes->take(n);
+template<class T> void Tree<T>::dlte(int n) {
+
+}
+
+template<class T> void Tree<T>::dlteBalanced(void) {
+    if(root != NULL) {
+    
+    }
 }
 
 template<class T> NodeTree<T> *Tree<T>::getRoot(void) {
     return root;
 }
 
+template<class T> NodeTree<T> *Tree<T>::take(int n) {
+    return this->toList()->take(n)->getData();
+}
+
 template<class T> int Tree<T>::size(void) {
-    return nodes->size();
+    return this->toList()->size();
 }
 
 template<class T> void Tree<T>::swapChildrenFather(NodeTree<T> *n) {
@@ -533,80 +502,16 @@ template<class T> void Tree<T>::show(void) {
         cout<<"\nIS EMPTY"<<endl;
 }
 
-template<class T> List<NodeTree<T> *> *Tree<T>::toList(bool b) {
+template<class T> List<NodeTree<T> *> *Tree<T>::toList(void) {
     List<NodeTree<T> *> *output = new List<NodeTree<T> *>();
     if(root != NULL) {
-        NodeTree<T> *tmp_1 = root;
-        NodeTree<T> *tmp_2 = NULL;
-        Queue<NodeTree<T> *> *queue = new Queue<NodeTree<T> *>();
-        queue->queue(tmp_1);
-        while(!queue->queueIsEmpty()) {
-            tmp_1 = queue->queueTake()->getData();
-            queue->unqueue(b);
-            output->add(tmp_1);
-            if(!tmp_1->getChildrens()->isEmpty()) {
-                tmp_2 = tmp_1->getChildrens()->getHead()->getData();
-                tmp_1->getChildrens()->dlteHead(b);
-                queue->queue(tmp_2);
-            }
-            while(!tmp_2->getFather()->getChildrens()->isEmpty()) {
-                tmp_2 = tmp_2->getFather()->getChildrens()->getHead()->getData();
-                queue->queue(tmp_2);
-                tmp_2->getFather()->getChildrens()->dlteHead(b);
-            }
-        }
-    }
-    return output;
-}
-
-template<class T> Queue<NodeTree<T> *> *Tree<T>::toQueue(bool b) {
-    Queue<NodeTree<T> *> *output = new Queue<NodeTree<T> *>();
-    if(root != NULL) {
-        NodeTree<T> *tmp_1 = root;
-        NodeTree<T> *tmp_2 = NULL;
-        Queue<NodeTree<T> *> *queue = new Queue<NodeTree<T> *>();
-        queue->queue(tmp_1);
-        while(!queue->queueIsEmpty()) {
-            tmp_1 = queue->queueTake()->getData();
-            queue->unqueue(b);
-            output->queue(tmp_1);
-            if(!tmp_1->getChildrens()->isEmpty()) {
-                tmp_2 = tmp_1->getChildrens()->getHead()->getData();
-                tmp_1->getChildrens()->dlteHead(b);
-                queue->queue(tmp_2);
-            }
-            while(!tmp_2->getFather()->getChildrens()->isEmpty()) {
-                tmp_2 = tmp_2->getFather()->getChildrens()->getHead()->getData();
-                queue->queue(tmp_2);
-                tmp_2->getFather()->getChildrens()->dlteHead(b);
-            }
-        }
-    }
-    return output;
-}
-
-template<class T> Stack<NodeTree<T> *> *Tree<T>::toStack(bool b) {
-    Stack<NodeTree<T> *> *output = new Stack<NodeTree<T> *>();
-    if(root != NULL) {
-        NodeTree<T> *tmp_1 = root;
-        NodeTree<T> *tmp_2 = NULL;
-        Queue<NodeTree<T> *> *queue = new Queue<NodeTree<T> *>();
-        queue->queue(tmp_1);
-        while(!queue->queueIsEmpty()) {
-            tmp_1 = queue->queueTake()->getData();
-            queue->unqueue(b);
-            output->stack(tmp_1);
-            if(!tmp_1->getChildrens()->isEmpty()) {
-                tmp_2 = tmp_1->getChildrens()->getHead()->getData();
-                tmp_1->getChildrens()->dlteHead(b);
-                queue->queue(tmp_2);
-            }
-            while(!tmp_2->getFather()->getChildrens()->isEmpty()) {
-                tmp_2 = tmp_2->getFather()->getChildrens()->getHead()->getData();
-                queue->queue(tmp_2);
-                tmp_2->getFather()->getChildrens()->dlteHead(b);
-            }
-        }
+        Queue<NodeTree<T> *> *aux = new Queue<NodeList<T> *>();
+        NodeList<T> *it = root->getChildrens()->getHead();
+        output->add(root);
+        aux->queue(root);
+        do {
+            // --- IMPLEMENT ---
+        } while(it->hasNext());     
     }
     return output;
 }
@@ -614,10 +519,13 @@ template<class T> Stack<NodeTree<T> *> *Tree<T>::toStack(bool b) {
 // ---------------------- Class MAIN
 
 int main(int argc, char *argv[]) {
-    Tree<int> *t = new Tree<int>(5);
-    for(int i = 0; i < 100; i++)
-        t->addBalanced(i);
-    t->show();
+    NodeTree<int> *n1 = new NodeTree<int>();
+    NodeTree<int> *n2 = new NodeTree<int>();
+    cout<<n1->hasFather();
+    n1->setFather(n2);
+    cout<<n1->hasFather();
+    n1->setFather();
+    cout<<n1->hasFather();
 
     cout<<endl;
     system("PAUSE");
