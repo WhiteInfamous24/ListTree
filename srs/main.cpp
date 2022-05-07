@@ -22,7 +22,9 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-
+    List<int> *l = new List<int>();
+    l->add(24);
+    l->show();
     
     cout<<endl;
     system("PAUSE");
